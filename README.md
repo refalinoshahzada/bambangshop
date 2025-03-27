@@ -48,15 +48,15 @@ You can install Postman via this website: https://www.postman.com/downloads/
     (You might want to use `cargo check` if you only need to verify your work without running the app.)
 
 ## Mandatory Checklists (Publisher)
--   [ ] Clone https://gitlab.com/ichlaffterlalu/bambangshop to a new repository.
+-   [x] Clone https://gitlab.com/ichlaffterlalu/bambangshop to a new repository.
 -   **STAGE 1: Implement models and repositories**
-    -   [ ] Commit: `Create Subscriber model struct.`
-    -   [ ] Commit: `Create Notification model struct.`
-    -   [ ] Commit: `Create Subscriber database and Subscriber repository struct skeleton.`
-    -   [ ] Commit: `Implement add function in Subscriber repository.`
-    -   [ ] Commit: `Implement list_all function in Subscriber repository.`
-    -   [ ] Commit: `Implement delete function in Subscriber repository.`
-    -   [ ] Write answers of your learning module's "Reflection Publisher-1" questions in this README.
+    -   [x] Commit: `Create Subscriber model struct.`
+    -   [x] Commit: `Create Notification model struct.`
+    -   [x] Commit: `Create Subscriber database and Subscriber repository struct skeleton.`
+    -   [x] Commit: `Implement add function in Subscriber repository.`
+    -   [x] Commit: `Implement list_all function in Subscriber repository.`
+    -   [x] Commit: `Implement delete function in Subscriber repository.`
+    -   [x] Write answers of your learning module's "Reflection Publisher-1" questions in this README.
 -   **STAGE 2: Implement services and controllers**
     -   [ ] Commit: `Create Notification service struct skeleton.`
     -   [ ] Commit: `Implement subscribe function in Notification service.`
@@ -77,6 +77,51 @@ This is the place for you to write reflections:
 ### Mandatory (Publisher) Reflections
 
 #### Reflection Publisher-1
+
+1. Do we need an interface (or trait in Rust) in BambangShop, or is a single Model struct enough?
+
+In the Observer pattern, an interface (or a trait in Rust) establishes a contract that all subscribers must adhere to, enabling different implementations to coexist. Rust traits facilitate polymorphic behavior and ensure that all observers implement essential methods, such as `update`, as seen in the Publisher-1 example.  
+
+In the case of BambangShop, we currently define a `Subscriber` struct without a trait. This approach works as long as all subscribers share the same structure and behavior. However, if we later introduce multiple subscriber types—such as email-based or webhook-based subscribers—a trait would be useful to enforce a common behavior, like:  
+
+```rust
+trait Subscriber {
+    fn notify(&self, notification: &Notification);
+}
+```
+
+Since we only have one `Subscriber` struct for now, a trait isn't strictly necessary, but adding one would enhance flexibility.
+
+2. Is using Vec (list) sufficient, or is DashMap necessary?
+
+Since the `id` in `Program` and the `url` in `Subscriber` must be unique, a key-value storage structure like a **hashmap/dictionary** is ideal.  
+
+### **a. Limitations of Using `Vec<Subscriber>`:**  
+- Removing a subscriber requires **iterating** through the list.  
+- If the number of subscribers grows too large, this approach becomes inefficient.  
+
+### **b. Advantages of Using `DashMap<String, Subscriber>` (Map/Dictionary):**  
+- Since dictionary keys must be **unique**, `url` uniqueness is naturally enforced.  
+
+Given our need for efficient lookups, **DashMap is the better choice** for managing subscribers.
+
+3. Do we need DashMap, or can we implement Singleton instead?
+
+The Singleton pattern guarantees a single global instance, which we already accomplish using `lazy_static!`:
+
+```rust
+lazy_static! {
+    pub static ref SUBSCRIBERS: DashMap<String, Subscriber> = DashMap::new();
+}
+```
+
+However, Singleton by itself does not provide thread safety. `DashMap` in Rust is specifically built for concurrent access, preventing data races without the need for manual locking.
+
+- If we replace `DashMap` with `HashMap` and use Singleton, we would need to wrap it in a `Mutex` or `RwLock` to ensure thread safety, which introduces locking overhead.
+
+Since `DashMap` offers both Singleton behavior and thread safety, it is the optimal choice.
+
+In conclusion, we should keep `DashMap` rather than replacing it with just a Singleton.
 
 #### Reflection Publisher-2
 
