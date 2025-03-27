@@ -1,4 +1,5 @@
 pub mod product;
+pub mod notification;
 
 use rocket::fairing::AdHoc;
 
