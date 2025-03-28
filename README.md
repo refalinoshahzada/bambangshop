@@ -65,11 +65,11 @@ You can install Postman via this website: https://www.postman.com/downloads/
     -   [x] Commit: `Implement unsubscribe function in Notification controller.`
     -   [x] Write answers of your learning module's "Reflection Publisher-2" questions in this README.
 -   **STAGE 3: Implement notification mechanism**
-    -   [ ] Commit: `Implement update method in Subscriber model to send notification HTTP requests.`
-    -   [ ] Commit: `Implement notify function in Notification service to notify each Subscriber.`
-    -   [ ] Commit: `Implement publish function in Program service and Program controller.`
-    -   [ ] Commit: `Edit Product service methods to call notify after create/delete.`
-    -   [ ] Write answers of your learning module's "Reflection Publisher-3" questions in this README.
+    -   [x] Commit: `Implement update method in Subscriber model to send notification HTTP requests.`
+    -   [x] Commit: `Implement notify function in Notification service to notify each Subscriber.`
+    -   [x] Commit: `Implement publish function in Program service and Program controller.`
+    -   [x] Commit: `Edit Product service methods to call notify after create/delete.`
+    -   [x] Write answers of your learning module's "Reflection Publisher-3" questions in this README.
 
 ## Your Reflections
 This is the place for you to write reflections:
@@ -181,3 +181,39 @@ Postman is a powerful tool for API testing that helps validate and debug request
 By leveraging Postman, developers can efficiently test and debug APIs, improving the development workflow.
 
 #### Reflection Publisher-3
+
+1. **Which type of Observer Pattern is implemented in our system?**  
+
+In **BambangShop**, we use the **Push Model** of the Observer Pattern.  
+
+- The **Publisher (NotificationService)** actively sends updates to **Subscribers**.  
+- Whenever a product is created, deleted, or promoted, the `notify` method immediately dispatches notifications.  
+- Subscribers receive updates via the `update` method, which asynchronously sends an HTTP POST request to their registered URL.  
+
+This approach ensures that subscribers receive real-time updates as soon as the publisher decides to send them.  
+
+2. **What would happen if we switched to the Pull Model instead?**  
+
+If **BambangShop** adopted a **Pull Model**, subscribers would need to manually request updates instead of receiving them automatically. Here are the pros and cons:  
+
+**Advantages of the Pull Model**  
+- **Reduced Load on the Publisher**: Notifications are retrieved only when needed, avoiding unnecessary broadcasts.  
+- **Better Handling of Offline Subscribers**: Since updates are fetched on demand, subscribers won’t miss notifications due to temporary unavailability.  
+- **More Control for Subscribers**: Each subscriber can decide when to retrieve updates, reducing redundant notifications if real-time data isn’t necessary.  
+
+**Disadvantages of the Pull Model (for our case)**  
+- **Increased Complexity for Subscribers**: They must periodically check for updates, which adds additional processing overhead.  
+- **Delayed Notifications**: Since subscribers fetch data at intervals (e.g., every 10 minutes), they won’t receive real-time updates.  
+- **Higher Resource Consumption**: Frequent polling by multiple subscribers can lead to unnecessary system load.  
+
+For **BambangShop**, where real-time notifications are essential for product events, the **Push Model** is more efficient. The Pull Model would introduce delays and unnecessary polling, making it unsuitable.  
+
+3. **What are the consequences of removing multi-threading from the notification process?**  
+
+Currently, **NotificationService::notify** utilizes **multi-threading (thread::spawn)** to send notifications asynchronously. If multi-threading were removed, the following issues would arise:  
+
+- **Slower Notifications**: Updates would be sent sequentially, causing significant delays, especially with a large number of subscribers.  
+- **Increased API Response Time**: The `create`, `delete`, and `publish` operations in **ProductService** would take longer, as the system would have to wait for all notifications to be sent before responding.  
+- **Greater Risk of Failures**: If a single notification request fails or times out, all subsequent notifications would be blocked, reducing reliability.  
+
+By using **multi-threading**, **BambangShop** ensures that notifications are sent efficiently and in parallel, preventing delays and improving scalability.
